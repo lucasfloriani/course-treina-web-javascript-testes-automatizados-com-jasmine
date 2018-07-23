@@ -232,3 +232,59 @@ var myFunction = function(){
 }
 expect(myFunction).toThrow();
 ```
+
+### Criando um Matcher
+
+Para isso, precisamos fazer essa adição antes de cada spec. Isso seria muito trabalho, e por isso temos a função "beforeEach()".
+
+Resumidamente, ela executa um trecho de código antes de cada spec.
+
+No começo do arquivo, ou logo após a linha do "describe", vamos colocar a seguinte função:
+
+```node
+var myMatchers = {
+    toBe2: function(util, customEqualityTesters){
+        return {
+            compare: function(actual, expected){
+                var result = {}
+                result.pass = actual === 2;
+
+                if(!result.pass){
+                    result.message = "Expected " + actual + " to be exactly 2";
+                }
+
+                return result;
+            }
+        }
+    }
+}
+```
+
+Criamos um objeto com nome de "myMatchers", onde este pode armazenas multiplos matchers customizados, como por exemplo o toBe2, onde este verificará se um valor é igual a 2.
+
+Um Matcher é basicamente uma função, então nós criamos essa função. Essas funções recebem 2 parâmetros: util, que possui funcionalidades para Matchers, e customEqualityTesters, que precisa ser passado se chamarmos o "util.equals".
+
+A função do Matcher deve retornar um objeto que possua uma função chamada "compare()", a qual recebe o valor atual (passado para a função "expect()") e o esperado, passado para o matcher.
+
+Esta função "compare()" deve retornar um objeto, o qual possui um atributo "pass", que indica se o teste passou ou não.
+Para esse atributo, nós pegamos o valor atual e verificamos se ele é igual a 2.
+
+Outro atributo que o objeto retornado da função "compare()" possui é o "message". É nesse atributo que colocamos uma mensagem caso algo ocorra.
+
+No final retornamos o objeto.
+
+Para registrar os Matchers criados é necessário inicar antes de cada spec. Para isso, nós registramos dentro da função "beforeEach()".
+
+```node
+beforeEach(function(){
+    jasmine.addMatchers(myMatchers);
+})
+```
+
+A função "jasmine.addMatchers()" será responsável por registrar os Matchers.
+
+```node
+it('is 2', function(){
+    expect(2).toBe2();
+})
+```
