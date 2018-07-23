@@ -109,3 +109,8 @@ nodemon --exec jasmine
 ```
 
 Com isto o Nodemon executará o Jasmine a cada alteração de algum arquivo no nosso projeto.
+
+## TDD - Test Driven Development com Jasmine
+
+Resumidamente é a prática de escrever os teste primeiro e depois o código. Com isso, podemos definir no teste quais são os requisitos de determinada funcionalidade e seus respectivos retornos. Então, ao criarmos a funcionalidade, os testes automatzados indicarão quando finalmente terminarmos de escrever uma funcionalidade que realmente entrega tudo o que deveria fazer.
+Para verificar um exemplo utilizando TDD, verifique os arquivos "anagram-spec.js" e "anagram.js" neste repositório.
