@@ -114,3 +114,121 @@ Com isto o Nodemon executará o Jasmine a cada alteração de algum arquivo no n
 
 Resumidamente é a prática de escrever os teste primeiro e depois o código. Com isso, podemos definir no teste quais são os requisitos de determinada funcionalidade e seus respectivos retornos. Então, ao criarmos a funcionalidade, os testes automatzados indicarão quando finalmente terminarmos de escrever uma funcionalidade que realmente entrega tudo o que deveria fazer.
 Para verificar um exemplo utilizando TDD, verifique os arquivos "anagram-spec.js" e "anagram.js" neste repositório.
+
+## Lista de Matchers
+
+### toEqual
+
+Usado para comparar o valor da função expect com o valor passado por parâmetro na sua função.
+
+```node
+var a = 'TreinaWeb';
+var b = 'TreinaWeb';
+
+expect(a).toEqual(b); // passa no teste
+```
+
+### toBe
+
+Igual ao toEqual(), porem contem uma pequena diferença. Quando fazemos comparação com objetos, o toBe verifica se ambos são o mesmo objeto não importando se são simplesmente iguais.
+
+```node
+var a = {nome: 'TreinaWeb'};
+var b = {nome: 'TreinaWeb'};
+
+expect(a).toEqual(b); // passa pois os osjetos são iguais
+expect(a).toBe(b);    // dará erro, pois os objetos, mesmo sendo iguais, não são os mesmo.
+expect(a).toBe(a);    // dará sucesso, pois os objetos testados são os mesmos.
+```
+
+### toBeTruthy e toBeFalsy
+
+Servem para verificar se um valor é verdadeiro ou falso.
+
+```node
+expect("TreinaWeb").toBeTruthy();
+expect(0).toBeFalsy();
+```
+
+### not
+
+Podemos realizar a negação de um matcher utilizando o matcher not
+
+```node
+expect(false).not.toBeTruthy();
+```
+
+### toContain
+
+Usado para verificar se um determinado elemento está presente no meio de outros elementos. Isso serve tanto para um item dentro de uma lista quanto para caracteres dentro de uma string.
+
+```node
+expect([1,2,3]).toContain(2);
+expect("TreinaWeb").toContain("Web");
+expect("Hello Web").not.toContain("World");
+```
+
+### toBeDefined e toBeUndefined
+
+Verifica se determinado elemento está definido.
+
+```node
+var obj = {};
+expect(obj.name).toBeUndefined();
+obj.name = "TreinaWeb";
+expect(obj.name).toBeDefined();
+```
+
+### toBeNull
+
+Verifica se algo é nulo.
+
+```node
+expect(null).toBeNull();
+```
+
+### toBeNan
+
+Verifica se algo é NaN (not a number).
+
+```node
+expect(10).not.toBeNaN();
+expect(0 / 0).toBeNaN();
+```
+
+OBS: O Javascrip possui uma função nativa que verifica se algo é NaN. A diferença é que a função do Javascript retornará verdadeiro para qualquer coisa que não seja um número ou string numérica, enquanto a função do Jasmine só retorna true se o valor passado for exatamente NaN.
+
+### toBeGreaterThan e toBeLessThan
+
+Usado para verificar se algo é maior ou menor que o valor passado. Essa função funciona para strings tambem.
+
+```node
+expect(10).toBeGreaterThan(1);
+expect(1).toBeLessThan(10);
+expect('a').toBeLessThan('z');
+```
+
+### toBeCloseTo
+
+Verifica se um número é próximo de outro número, passando uma quantia de precisão de casas decimais para indicar se pode ser considerado próximo ou não.
+
+```node
+expect(20.3).toBeCloseTo(20.32, 1);
+```
+
+### Matchers com Expressões Regulares
+
+```node
+expect("TreinaWeb").toMatch(/Web/);
+```
+
+### toThrow
+
+Faz com que esperemos que uma função retorne um erro.
+
+```node
+var myFunction = function(){
+    throw new Error();
+}
+expect(myFunction).toThrow();
+```
