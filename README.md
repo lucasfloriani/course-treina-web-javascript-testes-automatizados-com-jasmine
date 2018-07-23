@@ -288,3 +288,119 @@ it('is 2', function(){
     expect(2).toBe2();
 })
 ```
+
+## Observers do Jasmine
+
+Possibilita executar código antes ou depois da execução de cada spec ("it()"), normalmente usado para declarar variáveis e então limpar seus valores antes de que cada teste seja executado.
+
+O "beforeEach()" é um dos observers disponíveis. Usamos para poder registrar o Matcher que criamos. Também há a função "afterEach()", para executar um código depois de cada spec.
+
+```node
+describe('Anagram', function(){
+    var result = 2;
+    afterEach(function(){
+        result = 2;
+    })
+    it('has to result in 5', function(){
+        result += 3;
+        expect(result).toEqual(5);
+    })
+    it('has to result in 9', function(){
+        result += 7;
+        expect(result).toEqual(9);
+    })
+})
+```
+
+Isso pode ser importante, porque às vezes executamos uma função que altera o estado de um objeto ou variável, deixando-os sujos para o teste seguinte. Então um dos principais objetivos dessas funções "beforeEach()" e "afterEach()" é limpar, reiniciar o estado do que estamos testando.
+
+Além dessas duas funções que executam antes e depois de cada "it()", também temos as funções "beforeAll()" e "afterAll()". A diferença aqui é que elas só executam uma vez antes e depois da execução de todas as Specs.
+
+## Organização de código de testes
+
+Para organizar melhor os testes, o Jasmine permite o aninhamento de funções "describe()".
+
+Um exemplo seria a separação dos testes de anagramas por teste de letras e números:
+
+```node
+describe('Anagram', function(){
+    describe('Letters', function(){
+        it('is true when "abc" and "cba"', function(){
+            expect(isAnagram('abc','cba')).toEqual(true);
+        })
+        it('is true when "Amor" and "Roma"', function(){
+            expect(isAnagram('Amor','Roma')).toEqual(true);
+        })
+        it('is true when two empty strings', function(){
+            expect(isAnagram('', '')).toEqual(true);
+        })
+    })
+    describe('Numbers', function(){
+        it('is true when "132" and 312', function(){
+            expect(isAnagram('132', 312)).toEqual(true);
+        })
+        it('is true when "0.12" and "102"', function(){
+            expect(isAnagram('0.12', '102')).toEqual(true);
+        })
+        it('is true when 0.12 and "102"', function(){
+            expect(isAnagram(0.12, '102')).toEqual(true);
+        })
+        it('is false when 012 and 102', function(){
+            expect(isAnagram(012, 102)).toEqual(false);
+        })
+    })
+})
+```
+
+## Pulando Specs e Suítes
+
+Jasmine oferece uma maneira mais simples do que comentar várias linhas.
+
+Para ignorar uma spec, basta colocar um "x" na frente do nome da função "it()", chamando-a agora de "xit()".
+
+```node
+describe('letters', function(){
+        xit('is true when "abc" and "cba"', function(){
+            expect(isAnagram('abc','cba')).toEqual(true);
+        })
+})
+```
+
+Para ignorar uma suíte inteira, basta colocar um "x" na frente do nome da função "describe()":
+
+```node
+xdescribe('letters', function(){
+        it('is true when "abc" and "cba"', function(){
+            expect(isAnagram('abc','cba')).toEqual(true);
+        })
+})
+```
+
+Para ignorar specs de uma linha para baixo, basta adicionar o comando "return", pois sua estrutura é baseada em funções, podendo assim utilizar o comando para retornar antes de testar as funções abaixo.
+
+```node
+describe('letters', function(){
+        it('is true when "abc" and "cba"', function(){
+            expect(isAnagram('abc','cba')).toEqual(true);
+        })
+        return; // A funcao "describe()" sera interrompida aqui.
+
+        it('is true when "Amor" and "Roma"', function(){
+            expect(isAnagram('Amor','Roma')).toEqual(true);
+        })
+        it('is true when two empty strings', function(){
+            expect(isAnagram('', '')).toEqual(true);
+        })
+})
+```
+
+Ao contrário da exclusão xit() e xdescribe(), que evitam a execução, també há o foco (fit() e fdescribe()). Quando presentes, apenas essas funções serão executadas, ignorando qualquer it() e describe() presentes.
+
+## Comparando tipos de valores
+
+Usado para verificar o tipo retornado.
+
+```node
+expect(isAnagram('abc','cba')).toEqual(jasmine.any(Boolean));
+expect(new MyObject).toEqual(jasmine.any(MyObject));
+```
