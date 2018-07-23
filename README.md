@@ -404,3 +404,348 @@ Usado para verificar o tipo retornado.
 expect(isAnagram('abc','cba')).toEqual(jasmine.any(Boolean));
 expect(new MyObject).toEqual(jasmine.any(MyObject));
 ```
+
+## O que são Spies
+
+No Jasmine, um Spy nos permite verificar pedaços de código, modificar funções, rastrear chamadas de funções e seus parâmetros. Então ele pode ser uma função ou objeto que nos perminte substituir um pedaço de código.
+
+Um Spy só existe no bloco em que foi declarado. Após isso, ele é removido.
+
+### Exemplo com Spies
+
+Arquivo javascript:
+
+```node
+class Calculator{
+    sum(n1, n2){
+        return n1 + n2;
+    }
+}
+
+class Person{
+    randomCalc(calculator){
+        var n1 = parseInt(Math.random()*10),
+            n2 = parseInt(Math.random()*10);
+        return `${n1} + ${n2} = ${calculator.sum(n1,n2)}`;
+    }
+}
+```
+
+Primeiro iremos testar se a função "sum()" de Calculator está sendo usada. Para verificar isto, substituiremos a função "sum()" por um Spy, e ele nos dirá se a função foi chamada ou não.
+
+```node
+describe('Person', function(){
+    it('uses the Calculator to sum', function(){
+        var calculator = new Calculator();
+        var person = new Person();
+
+        spyOn(calculator, 'sum');
+        person.randomCalc(calculator);
+        expect(calculator.sum).toHaveBeenCalled();
+    })
+})
+```
+
+Nós instanciamos as classes Calculator e Person. Então nós usamos a função "spyOn()" para substituir uma função por um Spy. Para isso, passamos o objeto e indicamos o nome da função que queremos substituir.
+
+Em seguida executamos a função "randomCalc()" de Person normalmente, passando o Calculator para a função.
+
+Por fim, fazemos o teste, indicando que espera-se que a função "sum()" de Calculator tenha sido chamada.
+
+Além de verificar se uma função foi chamada, também podemos ver se determinada função foi chamada com determinado parâmetro.
+
+```node
+describe('Person', function(){
+    it('uses the Calculator to sum', function(){
+        var calculator = new Calculator();
+        var person = new Person();
+
+        spyOn(person, 'randomCalc');
+        person.randomCalc(calculator);
+        expect(person.randomCalc).toHaveBeenCalledWith(calculator);
+    })
+})
+```
+
+Agora nós colocamos um Spy no lugar da função "randomCalc()" da classe Peson. Executamos a função normalmente, passando o Calculator para ela.
+
+No teste, verificamos se a função "randomCalc()" foi chamada com "calculator" como seu parâmetro.
+
+Quando um Spy substitui uma função, ele não faz nada.
+
+Se você reparar, nossa função "randomCalc()", que deveria retornar uma string, não está retonando nada, já que substituímos por um Spy.
+
+Para ter certeza de que o Spy, quando executado, mantenha o retorno da função originail, basta executar a função "callThrough()".
+
+```node
+describe('Person', function(){
+    it('uses the Calculator to sum', function(){
+        var calculator = new Calculator();
+        var person = new Person();
+
+        spyOn(person, 'randomCalc').and.callThrough();
+        var result = person.randomCalc(calculator);
+        expect(person.randomCalc).toHaveBeenCalledWith(calculator);
+    })
+})
+```
+
+A variável "result" agora terá o valor esperado. Caso a gente remove o ".and.callThrough()", result ficará com o valor "undefined".
+
+Além do valor original de uma função, também podemos fazer com que um Spy retorne um valor de nossa escolha.
+
+```node
+describe('Person', function(){
+    it('uses the Calculator to sum', function(){
+        var calculator = new Calculator();
+        var person = new Person();
+
+        spyOn(person, 'randomCalc').and.returnValue(53184);
+        var result = person.randomCalc(calculator);
+        console.log(result);
+        expect(person.randomCalc).toHaveBeenCalledWith(calculator);
+    })
+})
+```
+
+O que fizemos foi usar a função "returnValue()" para injetar um valor de nossa escolha. Esse valor será o retorno da função substituída pelo Spy.
+
+Além de valores retornados, nós podemos até mesmo alterar o código a ser executado por uma função. Basta criarmos uma nova função e chamar com "callFake()"
+
+```node
+describe('Person', function(){
+    it('uses the Calculator to sum', function(){
+        var calculator = new Calculator();
+        var person = new Person();
+
+        var fakeFunction = function(){
+            return 'my fake function!';
+        }
+
+        spyOn(person, 'randomCalc').and.callFake(fakeFunction);
+        var result = person.randomCalc(calculator);
+        console.log(result);
+        expect(person.randomCalc).toHaveBeenCalledWith(calculator);
+    })
+})
+```
+
+### Criando Spies para funções que não existem
+
+```node
+describe('Person', function(){
+    it('uses the Calculator to divide', function(){
+        var calculator = new Calculator();
+        var person = new Person();
+
+        person.randomDiv = jasmine.createSpy('div spy');
+        person.randomDiv();
+
+        expect(person.randomDiv).toHaveBeenCalled();
+    })
+})
+```
+
+Assim como os Spies criados anteriormente, esse também possui os mesmo métodos, como o que força um valor como retorno.
+
+```node
+describe('Person', function(){
+    it('uses the Calculator to divide', function(){
+        var calculator = new Calculator();
+        var person = new Person();
+
+        person.randomDiv = jasmine.createSpy('div spy').and.returnValue(5);
+
+        expect(person.randomDiv()).toEqual(5);
+    })
+})
+```
+
+### Criando objetos Spy
+
+Assim como podemos criar funções Spy, podemos também criar objetos.
+
+```node
+var tape;
+
+beforeEach(function() {
+    tape = jasmine.createSpyObj('tape', ['play', 'pause', 'stop', 'rewind']);
+
+    tape.play();
+    tape.pause();
+    tape.rewind(0);
+});
+```
+
+Assim nós usamos a função "createSpyObj()", onde passamos o nome do objeto que queremos criar. Em seguida, passamos uma lista de funções. Todas as funções declaradas são Spies tambem, o que significa que podemos pegar qualquer uma dessas funções e executar qualquer função dos Spies que aprendemos.
+
+### Outras Propriedades
+
+Quando criamos um Spy, ele acaba nos fornecendo também uma propriedade chamada "calls", que nos permite obter ainda mais informações sobre as funções.
+
+| Função | Descrição |
+| --- | --- |
+| .calls.any() | retorna "false" se o Spy não foi chamado e "true" se alguma chamada foi realizada |
+| .calls.count() | retorna o número de vezes que o Spy foi chamado |
+| .calls.argsFor(index) | retorna os parâmetros passados para a função de acordo com o índice indicado.<br> Ex: setValues(5,37);<br>setValues.calls.argsFor(1) //retorna 37 |
+| .calls.allArgs() | retorna todos os parâmetros passados para a função |
+| .calls.all() | retorna o contexto (this) e parâmetros passados pelas chamadas |
+| .calls.mostRecent() | retorna o contexto (this) e parâmetros passados pela chamada mais recente |
+| .calls.first() | retorna o context (this) e parâmetros passados pela primeira chamada |
+| .calls.reset() | limpa todos os dados armazenados pelo Spy |
+
+## Teste de códigos assíncronos
+
+Para testes assíncronos com o Jasmine, precisamos chamar o código assíncrono antes que o spec seja executado. Para garantir isso vamos ter que colocar nosso código assíncrono dentro do "beforeEach()".
+Temos que avisar ao Jasmine quando a função assíncrona for finalizada. Fazemos isso chamando uma função especial chamada "done()".
+
+### Exemplo
+
+```node
+var myValue = 0;
+function myAsyncFunc(){
+    setTimeout(function(){
+        myValue = 10;
+    }, 2000)
+}
+
+describe('Async Function', function(){
+    it('should be 10', function(){
+        expect(myValue).toEqual(10);
+    })
+})
+
+// O teste vai falhar, pois ele é executado antes que o "setTimeout()" seja finalizado.
+```
+
+```node
+var myValue = 0;
+
+function myAsyncFunc(done){
+    setTimeout(function(){
+        myValue = 10;
+        done();
+    }, 2000)
+}
+
+describe('Async Function', function(){
+    beforeEach(function(done){
+        myAsyncFunc(done);
+    })
+
+    it('should be 10', function(){
+        expect(myValue).toEqual(10);
+    })
+})
+```
+
+Em um cenário real não faz sentido chamarmos uma função "done()" só para que um framework de testes possa funcionar.
+
+Uma ideia seria o uso de algo como callbacks ou Promisses. Assim nós podemos chamar a função e garantir que o código da função foi executado, e então executar o "done()" no próprio escopo do Jasmine.
+
+```node
+var myValue = 0;
+function myAsyncFunc(){
+    var promise = new Promise(function(resolve, reject){
+        setTimeout(function(){
+            myValue = 10;
+            resolve(myValue);
+        }, 2000)
+    })
+    return promise;
+}
+
+describe('Async Function', function(){
+    beforeEach(function(done){
+        myAsyncFunc().then(done);
+    })
+
+    it('should be 10', function(){
+        expect(myValue).toEqual(10);
+    })
+})
+```
+
+Assim nossa função funciona com Promises. Ao invés de chamarmos a funçao "done()" dentro da nossa função, nós executamos ela quando a Promise for resolvida, dentro do próprio "beforeEach()".
+
+As Specs também fornecem a função "done()". Então também podemos chamar uma função assíncrona dentro de uma função "it()".
+
+```node
+it('should be 10', function(done){
+    myAsyncFunc().then(function(){
+        expect(myValue).toEqual(10);
+        done();
+    });
+})
+```
+
+## Karma
+
+O Karma (inicialmente conhecido como Testacular) é uma ferramenta criada pela equipe que criou o AngularJS. Ela serve para executar testes.
+
+Com ele podemos, por exemplo, mandar que os nossos teste sejam executados no Chrome e no Firefox ao mesmo tempo com apenas um comando.
+
+### Instalação
+
+```node
+npm install -g karma-cli
+```
+
+Agora precisamos instalar algumas dependências. Execute o comando:
+
+```node
+npm install karma karma-jasmine karma-chrome-launcher jasmine-core
+```
+
+### Iniciando projeto com Karma
+
+```node
+karma init karma.conf.js
+
+// OBS: utilize o programa padrão de linha de comando, em alguns casos podem ocorrer alguns problemas ao executar o comando em outros programas.
+```
+
+Isso irá iniciar um arquivo de configuração do karma com o nome "karma.conf.js". Pode ser o nome que você preferir.
+
+Uma série de perguntas serão feitas, como o framework de testes que estamos usando (Jasmine já é o padrão), o navegador a ser usado para os testes, o local dos arquivos dos nossos testes, etc.
+
+Já temos nossos testes feitos. Então para iniciar, basta executar o comando:
+
+```node
+karma start karma.config.js
+```
+
+Provavelmente irá ocorrer um erro ao executarmos os teste, pois estamos usando o "require" que é um comando do Node.js, e o Karma executa testes em navegadores.
+
+Para executarmos os testes, precisaremos de um bundler.
+
+### Webpack
+
+Podemos usar um plugin do Karma que interpreta o comando "require()", fazendo uso do Webpack. Para isso execute o comando:
+
+```node
+npm install webpack karma-webpack
+```
+
+Agora vamos ao arquivo de configuração do Karma e vamos fazer uma pequena alteração. Em "preprocessors", adicione ao array ["webpack"] com a chave "spec/*spec.js".
+
+Note que o nome da chave deve ser igual a string passada em "files".
+
+```node
+preprocessors: {
+    'spec/*spec.js': ['webpack']
+},
+```
+
+Agora basta iniciar o karma com o comando:
+
+```node
+karma start [nome-do-arquivo-de-configuracao]
+// nome padrão é karma.conf.js
+```
+
+Agora teremos nosso código sendo testado no Chrome. Você pode configurar o Karma para testar outros navegadores, e eles serão abertos ao mesmo tempo.
+
+Além disso, também há o navegador Phantom, o qual não possui interfaze. Pode ser muito útil caso queira executar os testes em um navegador, mas está em um ambitente sem interface gráfica.
+
+O Karma por padrão fica observando alterações nos arquivos, então não precisamos mais do Nodemon para ficar reiniciando os testes a cada modificação.
